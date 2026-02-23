@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logos — Estrutura do Projeto</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F9F6F0; --card: #FDFBF8; --ink: #1C1A17; --ink-soft: #4A4540;
+    --ink-muted: #9C9590; --gold: #B8965A; --sage: #8A9E8C; --blue: #6B8CAE;
+    --rose: #C47A7A; --border: rgba(28,26,23,0.10);
+  }
+  body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; }
+
+  header {
+    padding: 1.75rem 3rem;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; }
+  .badge { background: var(--ink); color: var(--bg); font-size: 0.65rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-family: 'DM Mono', monospace; }
+  .header-right { margin-left: auto; display: flex; gap: 1.5rem; align-items: center; font-size: 0.78rem; color: var(--ink-muted); }
+  .stack-pill { background: rgba(28,26,23,0.06); padding: 0.2rem 0.7rem; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 0.7rem; }
+
+  .content { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem 3rem; max-width: 1400px; margin: 0 auto; }
+
+  .tree-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .panel-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .panel-title { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+
+  .tree { padding: 1.25rem; font-family: 'DM Mono', monospace; font-size: 0.75rem; line-height: 1.9; }
+  .tree-line { display: flex; align-items: baseline; gap: 0.4rem; }
+  .tree-prefix { color: var(--ink-muted); user-select: none; white-space: pre; }
+  .tree-name { color: var(--ink); }
+  .tree-dir { color: var(--gold); font-weight: 500; }
+  .tree-file { color: var(--ink-soft); }
+  .tree-comment { color: var(--ink-muted); font-size: 0.68rem; margin-left: auto; padding-left: 1rem; }
+  .tree-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.58rem; padding: 0.05rem 0.35rem;
+    border-radius: 4px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .tag-done  { background: rgba(138,158,140,0.2); color: var(--sage); }
+  .tag-wip   { background: rgba(184,150,90,0.2);  color: var(--gold); }
+  .tag-next  { background: rgba(107,140,174,0.2); color: var(--blue); }
+
+  /* Flow diagram */
+  .flow-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .flow-body { padding: 1.5rem; flex: 1; }
+
+  .flow-section { margin-bottom: 1.5rem; }
+  .flow-section-title { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.75rem; }
+
+  .flow-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .flow-box {
+    padding: 0.5rem 0.85rem; border-radius: 8px; font-size: 0.75rem;
+    border: 1px solid var(--border); font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+  }
+  .flow-arrow { color: var(--gold); font-size: 0.8rem; flex-shrink: 0; }
+  .box-frontend { background: rgba(184,150,90,0.08); color: var(--gold); border-color: rgba(184,150,90,0.25); }
+  .box-backend  { background: rgba(107,140,174,0.08); color: var(--blue); border-color: rgba(107,140,174,0.25); }
+  .box-db       { background: rgba(138,158,140,0.08); color: var(--sage); border-color: rgba(138,158,140,0.25); }
+  .box-neutral  { background: rgba(28,26,23,0.04); color: var(--ink-soft); }
+
+  .env-block {
+    background: #1C1A17; border-radius: 8px; padding: 1rem 1.25rem;
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; line-height: 1.8;
+    color: #9C9590;
+  }
+  .env-comment { color: #4A4540; }
+  .env-key     { color: #B8965A; }
+  .env-val     { color: #8A9E8C; }
+  .env-section { color: #6B8CAE; margin-top: 0.5rem; }
+
+  /* Commands */
+  .commands { padding: 0 3rem 3rem; max-width: 1400px; margin: 0 auto; }
+  .cmd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+  .cmd-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .cmd-header { padding: 0.75rem 1rem; background: rgba(28,26,23,0.03); border-bottom: 1px solid var(--border); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); font-weight: 600; }
+  .cmd-body { padding: 0.75rem 1rem; }
+  .cmd { font-family: 'DM Mono', monospace; font-size: 0.73rem; color: var(--ink-soft); padding: 0.3rem 0; }
+  .cmd .prompt { color: var(--gold); }
+  .cmd-desc { font-size: 0.68rem; color: var(--ink-muted); margin-top: 0.1rem; padding-left: 1rem; }
+  .section-label { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✦ Logos</div>
+  <div class="badge">Estrutura do Projeto</div>
+  <div class="header-right">
+    <span class="stack-pill">Vue 3 + Vite</span>
+    <span class="stack-pill">Fastify</span>
+    <span class="stack-pill">PostgreSQL</span>
+    <span class="stack-pill">Monorepo</span>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- Frontend tree -->
+  <div class="tree-panel">
+    <div class="panel-header">
+      <div class="panel-dot" style="background:var(--gold)"></div>
+      <div class="panel-title" style="color:var(--gold)">Frontend — Vue 3</div>
+    </div>
+    <div class="tree">
+
+      <div class="tree-line"><span class="tree-prefix">  </span><span class="tree-dir">frontend/</span></div>
+      <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file">package.json</span><span class="tree-comment">Vue 3, Vite, Pinia, Router, Axios</span></div>
+      <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file">vite.config.js</span><span class="tree-comment">alias @/, proxy /api</span></div>
+      <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file">.env.example</span></div>
+      <div class="tree-line"><span class="tree-prefix">  └─ </span><span class="tree-dir">src/</span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-file">main.js</span><span class="tree-comment">bootstrap app + plugins</span></div>
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-file">App.vue</span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">router/</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file">index.js</span><span class="tree-comment">rotas + auth guard <span class="tree-tag tag-done">✓ feito</span></span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">layouts/</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file">AppLayout.vue</span><span class="tree-comment">sidebar + topbar <span class="tree-tag tag-next">próximo</span></span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">shared/</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">components/</span><span class="tree-comment">Button, Modal, Input...</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">composables/</span><span class="tree-comment">useToast, useConfirm...</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">stores/</span><span class="tree-comment">stores globais</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file">utils/api.js</span><span class="tree-comment">axios + interceptors <span class="tree-tag tag-done">✓ feito</span></span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     └─ </span><span class="tree-dir">modules/</span><span class="tree-comment">1 pasta por domínio</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">auth/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  ├─ </span><span class="tree-dir">stores/auth.store.js</span><span class="tree-comment"><span class="tree-tag tag-done">✓ feito</span></span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  └─ </span><span class="tree-dir">views/</span><span class="tree-comment">Login, Register, Profile</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">bible/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  ├─ </span><span class="tree-dir">stores/bible.store.js</span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  └─ </span><span class="tree-dir">views/BibleView.vue</span><span class="tree-comment"><span class="tree-tag tag-next">próximo</span></span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">study/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">notes/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">highlights/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        └─ </span><span class="tree-dir">export/</span></div>
+    </div>
+  </div>
+
+  <!-- Backend tree -->
+  <div class="tree-panel">
+    <div class="panel-header">
+      <div class="panel-dot" style="background:var(--blue)"></div>
+      <div class="panel-title" style="color:var(--blue)">Backend — Node.js + Fastify</div>
+    </div>
+    <div class="tree">
+
+      <div class="tree-line"><span class="tree-prefix">  </span><span class="tree-dir">backend/</span></div>
+      <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file">package.json</span><span class="tree-comment">Fastify, pg, bcrypt, zod, puppeteer</span></div>
+      <div class="tree-line"><span class="tree-prefix">  ├─ </span><span class="tree-file">.env.example</span><span class="tree-comment">todas as variáveis documentadas</span></div>
+      <div class="tree-line"><span class="tree-prefix">  └─ </span><span class="tree-dir">src/</span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-file">server.js</span><span class="tree-comment">entry point <span class="tree-tag tag-done">✓ feito</span></span></div>
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-file">app.js</span><span class="tree-comment">plugins + rotas <span class="tree-tag tag-done">✓ feito</span></span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">config/</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file">env.js</span><span class="tree-comment">validação das env vars</span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">database/</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file">connection.js</span><span class="tree-comment">pool postgres <span class="tree-tag tag-done">✓ feito</span></span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-dir">migrations/</span><span class="tree-comment">schema.sql</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-dir">seeds/</span><span class="tree-comment">livros bíblicos</span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     ├─ </span><span class="tree-dir">shared/</span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  ├─ </span><span class="tree-file">middleware/authenticate.js</span><span class="tree-comment"><span class="tree-tag tag-done">✓ feito</span></span></div>
+      <div class="tree-line"><span class="tree-prefix">     │  └─ </span><span class="tree-file">errors/AppError.js</span><span class="tree-comment"><span class="tree-tag tag-done">✓ feito</span></span></div>
+
+      <div class="tree-line"><span class="tree-prefix">     └─ </span><span class="tree-dir">modules/</span><span class="tree-comment">routes.js + service.js por domínio</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">auth/</span><span class="tree-comment"><span class="tree-tag tag-done">✓ feito</span></span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  ├─ </span><span class="tree-file">auth.routes.js</span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  └─ </span><span class="tree-file">auth.service.js</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">bible/</span><span class="tree-comment"><span class="tree-tag tag-next">próximo</span></span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  ├─ </span><span class="tree-file">bible.routes.js</span></div>
+      <div class="tree-line"><span class="tree-prefix">        │  └─ </span><span class="tree-file">bible.service.js</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">study/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">notes/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">highlights/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        ├─ </span><span class="tree-dir">export/</span></div>
+      <div class="tree-line"><span class="tree-prefix">        └─ </span><span class="tree-dir">audit/</span></div>
+    </div>
+  </div>
+
+  <!-- Fluxo de dados -->
+  <div class="flow-panel">
+    <div class="panel-header">
+      <div class="panel-dot" style="background:var(--sage)"></div>
+      <div class="panel-title" style="color:var(--sage)">Fluxo de Dados — Requisição Autenticada</div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-section">
+        <div class="flow-section-title">Ciclo completo de uma requisição</div>
+        <div class="flow-row"><div class="flow-box box-frontend">Vue Component</div><span class="flow-arrow">──▸</span><div class="flow-box box-frontend">Pinia Store</div><span class="flow-arrow">──▸</span><div class="flow-box box-frontend">api.js (Axios)</div></div>
+        <div class="flow-row"><div class="flow-box box-neutral" style="margin-left:0.5rem">Bearer Token injetado automaticamente</div></div>
+        <div class="flow-row"><div class="flow-box box-frontend">axios interceptor</div><span class="flow-arrow">──▸</span><div class="flow-box box-backend">Fastify Route</div><span class="flow-arrow">──▸</span><div class="flow-box box-neutral">authenticate()</div></div>
+        <div class="flow-row"><div class="flow-box box-backend" style="margin-left:0.5rem">Module Service</div><span class="flow-arrow">──▸</span><div class="flow-box box-db">PostgreSQL</div></div>
+        <div class="flow-row"><div class="flow-box box-db">Query result</div><span class="flow-arrow">◂──</span><div class="flow-box box-backend">JSON response</div><span class="flow-arrow">◂──</span><div class="flow-box box-frontend">Pinia state</div></div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-section-title">Padrão de módulo (backend)</div>
+        <div class="flow-row"><div class="flow-box box-neutral">routes.js</div><span class="flow-arrow">──▸</span><div class="flow-box box-neutral">schema (zod)</div><span class="flow-arrow">──▸</span><div class="flow-box box-neutral">service.js</div><span class="flow-arrow">──▸</span><div class="flow-box box-db">db``</div></div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-section-title">Variáveis de ambiente (.env)</div>
+        <div class="env-block">
+<span class="env-comment"># backend/.env</span>
+<span class="env-key">DATABASE_URL</span>=<span class="env-val">postgresql://...</span>
+<span class="env-key">JWT_SECRET</span>=<span class="env-val">••••••••••••••••</span>
+<span class="env-key">FRONTEND_URL</span>=<span class="env-val">http://localhost:5173</span>
+<br>
+<span class="env-comment"># frontend/.env</span>
+<span class="env-key">VITE_API_BASE_URL</span>=<span class="env-val">http://localhost:3000</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist de progresso -->
+  <div class="flow-panel">
+    <div class="panel-header">
+      <div class="panel-dot" style="background:var(--rose)"></div>
+      <div class="panel-title" style="color:var(--rose)">Progresso do Projeto</div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-section">
+        <div class="flow-section-title">Concluído ✓</div>
+        <div style="display:flex;flex-direction:column;gap:0.4rem;font-size:0.78rem;color:var(--ink-soft)">
+          <div>✦ Tela de Login (HTML/CSS)</div>
+          <div>✦ Schema PostgreSQL (14 tabelas, 8 módulos)</div>
+          <div>✦ Estrutura monorepo Vue + Node</div>
+          <div>✦ Configuração Vite + proxy dev</div>
+          <div>✦ Router com navigation guard</div>
+          <div>✦ Pinia auth store completa</div>
+          <div>✦ Axios com interceptors JWT</div>
+          <div>✦ Fastify app.js com todos os plugins</div>
+          <div>✦ Módulo Auth (routes + service)</div>
+          <div>✦ Middleware authenticate</div>
+          <div>✦ Design tokens CSS globais</div>
+        </div>
+      </div>
+      <div class="flow-section">
+        <div class="flow-section-title">Próximas etapas</div>
+        <div style="display:flex;flex-direction:column;gap:0.4rem;font-size:0.78rem;color:var(--ink-muted)">
+          <div style="color:var(--blue)">→ Tela de leitura bíblica + marcações</div>
+          <div>→ API do módulo Bíblia</div>
+          <div>→ Módulo de referências cruzadas</div>
+          <div>→ Módulo de notas</div>
+          <div>→ Exportação PDF (Puppeteer)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Comandos -->
+<div class="commands">
+  <div class="section-label">Comandos para começar</div>
+  <div class="cmd-grid">
+    <div class="cmd-card">
+      <div class="cmd-header">1 — Instalar dependências</div>
+      <div class="cmd-body">
+        <div class="cmd"><span class="prompt">$</span> cd logos</div>
+        <div class="cmd"><span class="prompt">$</span> npm install</div>
+        <div class="cmd-desc">instala frontend + backend via workspaces</div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-header">2 — Configurar ambiente</div>
+      <div class="cmd-body">
+        <div class="cmd"><span class="prompt">$</span> cp backend/.env.example backend/.env</div>
+        <div class="cmd"><span class="prompt">$</span> cp frontend/.env.example frontend/.env</div>
+        <div class="cmd-desc">edite os arquivos .env com seus dados</div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-header">3 — Banco de dados</div>
+      <div class="cmd-body">
+        <div class="cmd"><span class="prompt">$</span> createdb logos_dev</div>
+        <div class="cmd"><span class="prompt">$</span> npm run db:migrate</div>
+        <div class="cmd"><span class="prompt">$</span> npm run db:seed</div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-header">4 — Rodar em desenvolvimento</div>
+      <div class="cmd-body">
+        <div class="cmd"><span class="prompt">$</span> npm run dev</div>
+        <div class="cmd-desc">Frontend: localhost:5173 · API: localhost:3000</div>
+        <div class="cmd-desc">Docs: localhost:3000/docs (Swagger)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
