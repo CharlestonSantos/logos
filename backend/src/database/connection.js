@@ -1,3 +1,11 @@
+//Adição para retirada posteriormente
+import dotenv from 'dotenv'
+import path from 'path'
+
+dotenv.config({
+  path: path.resolve(process.cwd(), 'backend/.env')
+})
+
 // src/database/connection.js
 import postgres from 'postgres'
 
