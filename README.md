@@ -83,3 +83,5 @@ npm run dev
 
 ## Licença
 Privado — todos os direitos reservados.
+## Desenvolvedor
+Desenvolvido e criado por Charleston Santos
