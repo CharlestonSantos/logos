@@ -50,6 +50,11 @@ const router = createRouter({
           path: 'perfil',
           name: 'Profile',
           component: () => import('@/modules/auth/views/ProfileView.vue'),
+        }, 
+        {
+          path: '/busca',
+          component: () => import('@/modules/bible/views/BibleSearchView.vue'),
+          meta: { requiresAuth: true },
         },
       ],
     },
