@@ -71,7 +71,7 @@
       <div class="highlight-toolbar" v-if="selectedVerseId" ref="toolbar">
         <span class="toolbar-label">Marcar:</span>
         <button v-for="color in highlightColors" :key="color.key" class="color-btn" :style="{ background: color.bg }"
-          :title="color.label" @click="applyHighlight(color.key)"></button>
+          :title="color.label" @click="console.log('verseId:', selectedVerseId); applyHighlight(selectedVerseId, color.key); selectedVerseId = null"></button>
         <button class="toolbar-note-btn" @click="openNoteForVerse" title="Adicionar nota">✏️</button>
         <button class="toolbar-ref-btn" @click="loadReferences" title="Ver referências">🔗</button>
         <button class="toolbar-close" @click="selectedVerseId = null">✕</button>
@@ -224,7 +224,14 @@
 
   // ── Marcações e notas (locais por enquanto) ─────────────────
   // Carrega marcações e notas do localStorage
-  const highlights = ref(JSON.parse(localStorage.getItem('logos:highlights') || '{}'))
+  import { useHighlights } from '@/shared/composables/useHighlights'
+
+  const {
+    highlights,
+    loadChapterHighlights,
+    applyHighlight,
+    getHighlight,
+  } = useHighlights()
   const notes = ref(JSON.parse(localStorage.getItem('logos:notes') || '{}'))
   const editingNote = ref(false)
   const editingVerseRef = ref('')
@@ -251,7 +258,7 @@
       .map(([verseId, n]) => ({ verseId, ...n }))
   )
 
-  function getHighlight(verseId) { return highlights.value[verseId] || null }
+
   function hasNote(verseId) { return !!notes.value[verseId] }
 
   // ── Inicialização ────────────────────────────────────────────
@@ -318,6 +325,7 @@
         `/bible/${selectedVersion.value}/${selectedBook.value.code}/${num}`
       )
       chapter.value = data
+      await loadChapterHighlights(selectedBook.value.code, num)
       sidebarOpen.value = false
       window.scrollTo({ top: 0, behavior: 'smooth' })
 
@@ -350,17 +358,7 @@
   }
 
   // ── Marcações ────────────────────────────────────────────────
-  function applyHighlight(colorKey) {
-    if (!selectedVerseId.value) return
-    if (highlights.value[selectedVerseId.value] === colorKey) {
-      delete highlights.value[selectedVerseId.value]
-    } else {
-      highlights.value[selectedVerseId.value] = colorKey
-    }
-    // Persiste no localStorage
-    localStorage.setItem('logos:highlights', JSON.stringify(highlights.value))
-    selectedVerseId.value = null
-  }
+
 
   // ── Notas ────────────────────────────────────────────────────
   function openNoteForVerse() {
