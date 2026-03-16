@@ -19,6 +19,16 @@ const router = createRouter({
       component: () => import('@/modules/auth/views/RegisterView.vue'),
       meta: { guest: true },
     },
+    {
+      path: '/esqueci-senha',
+      component: () => import('@/modules/auth/views/ForgotPasswordView.vue'),
+      meta: { guest: true },
+    },
+    {
+      path: '/redefinir-senha',
+      component: () => import('@/modules/auth/views/ResetPasswordView.vue'),
+      meta: { guest: true },
+    },
 
 
     // ── App principal (layout autenticado) ────────────────────
