@@ -20,6 +20,7 @@ const router = createRouter({
       meta: { guest: true },
     },
 
+
     // ── App principal (layout autenticado) ────────────────────
     {
       path: '/',
@@ -50,11 +51,16 @@ const router = createRouter({
           path: 'perfil',
           name: 'Profile',
           component: () => import('@/modules/auth/views/ProfileView.vue'),
-        }, 
+        },
         {
-          path: '/busca',
+          path: 'busca',
           component: () => import('@/modules/bible/views/BibleSearchView.vue'),
           meta: { requiresAuth: true },
+        },
+        {
+          path: 'plano',
+          name: 'ReadingPlan',
+          component: () => import('@/modules/study/views/ReadingPlanView.vue'),
         },
       ],
     },

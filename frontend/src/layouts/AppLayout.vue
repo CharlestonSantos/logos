@@ -22,6 +22,10 @@
                     <span class="nav-icon">📖</span>
                     <span class="nav-label" v-if="!collapsed">Bíblia</span>
                 </RouterLink>
+                <RouterLink to="/plano" class="nav-item" title="Plano de Leitura">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-label" v-if="!collapsed">Plano</span>
+                 </RouterLink>
                 <RouterLink to="/notas" class="nav-item" title="Notas">
                     <span class="nav-icon">📝</span>
                     <span class="nav-label" v-if="!collapsed">Notas</span>
@@ -37,7 +41,7 @@
                     <span class="nav-icon">🚪</span>
                     <span class="nav-label" v-if="!collapsed">Sair</span>
                 </button>
-            </div>
+            </div>            
         </aside>
 
         <!-- Conteúdo principal -->
