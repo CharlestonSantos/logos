@@ -86,7 +86,9 @@
       <!-- Leitura de hoje -->
       <div class="today-section">
         <div class="today-header">
-          <div class="today-title">📅 Leitura de hoje</div>
+          <div class="today-title">
+            📅 {{ today.extraDay > 0 ? 'Leitura extra — Dia ' + today.activeDay : 'Leitura de hoje' }}
+          </div>
           <div class="today-message" v-if="today.message">{{ today.message }}</div>
         </div>
 
@@ -120,8 +122,15 @@
 
         <div class="today-all-done" v-if="today.allDone">
           <div class="all-done-icon">🎉</div>
-          <div class="all-done-text">Leitura do dia concluída!</div>
-          <div class="all-done-sub">Volte amanhã para continuar</div>
+          <div class="all-done-text">Leitura concluída!</div>
+          <div class="all-done-sub" v-if="!today.canContinue">Volte amanhã para continuar</div>
+          <button
+            v-if="today.canContinue"
+            class="btn-continue"
+            @click="loadNextDay"
+          >
+            Continuar leitura → Dia {{ today.activeDay + 1 }}
+          </button>
         </div>
       </div>
 
@@ -280,6 +289,23 @@ onMounted(async () => {
   await loadPlan()
 })
 
+async function loadNextDay() {
+  const nextExtra = (today.value.extraDay || 0) + 1
+  loading.value = true
+  try {
+    const [planRes, todayRes, progressRes] = await Promise.all([
+      api.get('/reading-plan'),
+      api.get('/reading-plan/today?extraDay=' + nextExtra),
+      api.get('/reading-plan/progress'),
+    ])
+    started.value  = planRes.data.started
+    plan.value     = planRes.data.plan || {}
+    today.value    = todayRes.data
+    progress.value = progressRes.data
+  } catch {}
+  loading.value = false
+}
+
 async function loadPlan() {
   loading.value = true
   try {
@@ -364,6 +390,7 @@ async function resetPlan() {
   min-height: 100vh; background: #F9F6F0;
   font-family: 'DM Sans', sans-serif; color: #1C1A17;
   padding: 2.5rem;
+  overflow-y: auto;
 }
 
 /* ── Não iniciado ─────────────────────────────────────── */
@@ -489,6 +516,20 @@ async function resetPlan() {
 .btn-done.completed { background: #64C882; color: white; cursor: default; }
 .btn-done:hover:not(.completed):not(:disabled) { background: #B8965A; }
 .btn-done:disabled { opacity: 0.6; }
+
+.btn-continue {
+  margin-top: 0.75rem;
+  padding: 0.6rem 1.5rem;
+  background: #1C1A17;
+  color: #F9F6F0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-continue:hover { background: #B8965A; }
 
 .today-all-done {
   text-align: center; padding: 1.5rem 0;

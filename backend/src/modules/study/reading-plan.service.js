@@ -1,7 +1,5 @@
 // backend/src/modules/study/reading-plan.service.js
 
-// Bíblia em 1 ano — 1189 capítulos em 365 dias (~3.26/dia)
-// Sequência canônica AT → NT
 const BIBLE_SEQUENCE = [
   ['GEN',50],['EXO',40],['LEV',27],['NUM',36],['DEU',34],
   ['JOS',24],['JDG',21],['RUT',4],['1SA',31],['2SA',24],
@@ -19,7 +17,6 @@ const BIBLE_SEQUENCE = [
   ['JUD',1],['REV',22],
 ]
 
-// Gera lista flat de todos os capítulos em ordem
 function buildChapterList() {
   const list = []
   for (const [code, count] of BIBLE_SEQUENCE) {
@@ -30,12 +27,11 @@ function buildChapterList() {
   return list
 }
 
-const ALL_CHAPTERS = buildChapterList() // 1189 capítulos
+const ALL_CHAPTERS = buildChapterList()
 
-// Divide em 365 dias (3 ou 4 capítulos por dia)
 function buildYearPlan() {
   const days = []
-  const total = ALL_CHAPTERS.length // 1189
+  const total = ALL_CHAPTERS.length
   let idx = 0
   for (let day = 1; day <= 365; day++) {
     const remaining = total - idx
@@ -47,21 +43,21 @@ function buildYearPlan() {
   return days
 }
 
-const YEAR_PLAN = buildYearPlan() // 365 dias com capítulos
+const YEAR_PLAN = buildYearPlan()
 
 export class ReadingPlanService {
   constructor(db) {
     this.db = db
   }
 
-  // Retorna ou cria plano do usuário
+  // Retorna plano do usuário
   async getPlan(userId) {
     const [plan] = await this.db`
       SELECT * FROM reading_plans WHERE user_id = ${userId} LIMIT 1
     `
     if (!plan) return { plan: null, started: false }
 
-    const progress = await this._getCompletedCount(userId)
+    const progress  = await this._getCompletedCount(userId)
     const dayNumber = this._getCurrentDay(plan.startedAt)
 
     return {
@@ -78,32 +74,28 @@ export class ReadingPlanService {
     }
   }
 
-  // Leitura de hoje
-  async getToday(userId) {
+  // Leitura de hoje — aceita extraDay para continuar no mesmo dia
+  async getToday(userId, extraDay = 0) {
     const [plan] = await this.db`
       SELECT * FROM reading_plans WHERE user_id = ${userId} LIMIT 1
     `
     if (!plan) return { today: null, started: false }
 
-    const dayNumber = this._getCurrentDay(plan.startedAt)
-    const dayIdx    = Math.min(dayNumber - 1, 364)
-    const todayChapters = YEAR_PLAN[dayIdx] || []
+    const dayNumber    = this._getCurrentDay(plan.startedAt)
+    const activeDayIdx = Math.min(dayNumber - 1 + Number(extraDay), 364)
+    const todayChapters = YEAR_PLAN[activeDayIdx] || []
 
-    // Verifica quais já foram lidos hoje
-    const completed = await this.db`
-      SELECT book_code, chapter FROM reading_progress
-      WHERE user_id = ${userId}
-        AND book_code = ANY(${todayChapters.map(c => c.bookCode)})
-        AND chapter   = ANY(${todayChapters.map(c => c.chapter)})
+    // Busca todos os capítulos já lidos
+    const allCompleted = await this.db`
+      SELECT book_code, chapter FROM reading_progress WHERE user_id = ${userId}
     `
-
-    const completedKeys = new Set(completed.map(c => `${c.bookCode}:${c.chapter}`))
+    const completedKeys = new Set(allCompleted.map(c => `${c.bookCode}:${c.chapter}`))
 
     // Busca nomes dos livros
     const bookCodes = [...new Set(todayChapters.map(c => c.bookCode))]
-    const books = await this.db`
+    const books = bookCodes.length ? await this.db`
       SELECT code, name, abbr FROM bible_books WHERE code = ANY(${bookCodes})
-    `
+    ` : []
     const bookMap = Object.fromEntries(books.map(b => [b.code, b]))
 
     const chapters = todayChapters.map(c => ({
@@ -114,21 +106,25 @@ export class ReadingPlanService {
       completed: completedKeys.has(`${c.bookCode}:${c.chapter}`),
     }))
 
-    const allDone = chapters.every(c => c.completed)
+    const allDone     = chapters.length > 0 && chapters.every(c => c.completed)
+    const activeDay   = dayNumber + Number(extraDay)
+    const canContinue = allDone && activeDayIdx < 364
 
     return {
-      started:   true,
+      started:     true,
       dayNumber,
+      activeDay,
+      extraDay:    Number(extraDay),
       chapters,
       allDone,
-      message:   this._getDayMessage(dayNumber, allDone),
+      canContinue,
+      message:     this._getDayMessage(activeDay, allDone),
     }
   }
 
   // Inicia o plano
   async startPlan(userId) {
-    // Remove plano anterior se existir
-    await this.db`DELETE FROM reading_plans WHERE user_id = ${userId}`
+    await this.db`DELETE FROM reading_plans    WHERE user_id = ${userId}`
     await this.db`DELETE FROM reading_progress WHERE user_id = ${userId}`
 
     const [plan] = await this.db`
@@ -147,11 +143,11 @@ export class ReadingPlanService {
       ON CONFLICT (user_id, book_code, chapter) DO UPDATE SET read_at = NOW()
     `
 
-    const progress = await this._getCompletedCount(userId)
+    const progress  = await this._getCompletedCount(userId)
     const dayNumber = await this._getDayNumberFromPlan(userId)
 
     return {
-      success: true,
+      success:         true,
       chaptersRead:    progress,
       totalChapters:   1189,
       percentComplete: Math.round((progress / 1189) * 100),
@@ -166,14 +162,12 @@ export class ReadingPlanService {
     `
     if (!plan) return { started: false }
 
-    const completed = await this.db`
+    const completed    = await this.db`
       SELECT book_code, chapter FROM reading_progress WHERE user_id = ${userId}
     `
-
     const completedSet = new Set(completed.map(c => `${c.bookCode}:${c.chapter}`))
     const dayNumber    = this._getCurrentDay(plan.startedAt)
 
-    // Progresso por livro
     const bookProgress = {}
     for (const [code, count] of BIBLE_SEQUENCE) {
       let read = 0
@@ -196,8 +190,8 @@ export class ReadingPlanService {
 
   // Reinicia plano
   async resetPlan(userId) {
-    await this.db`DELETE FROM reading_plans     WHERE user_id = ${userId}`
-    await this.db`DELETE FROM reading_progress  WHERE user_id = ${userId}`
+    await this.db`DELETE FROM reading_plans    WHERE user_id = ${userId}`
+    await this.db`DELETE FROM reading_progress WHERE user_id = ${userId}`
   }
 
   // ── Helpers ───────────────────────────────────────────────
@@ -223,7 +217,7 @@ export class ReadingPlanService {
   }
 
   _getDayMessage(day, allDone) {
-    if (allDone) return '✓ Leitura do dia concluída! Excelente!'
+    if (allDone) return '✓ Leitura concluída! Continue lendo ou volte amanhã.'
     if (day <= 30)  return 'Ótimo começo! Continue assim.'
     if (day <= 100) return 'Você está construindo um hábito!'
     if (day <= 200) return 'Mais da metade do caminho!'

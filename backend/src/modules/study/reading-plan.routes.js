@@ -12,9 +12,10 @@ export default async function readingPlanRoutes(fastify) {
     return svc.getPlan(request.user.sub)
   })
 
-  // GET /reading-plan/today — leitura de hoje
+  // GET /reading-plan/today — leitura de hoje (?extraDay=1 para continuar)
   fastify.get('/today', async (request) => {
-    return svc.getToday(request.user.sub)
+    const extraDay = Number(request.query.extraDay) || 0
+    return svc.getToday(request.user.sub, extraDay)
   })
 
   // POST /reading-plan/start — inicia o plano
