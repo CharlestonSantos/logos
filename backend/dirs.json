@@ -1,0 +1,50 @@
+[
+  {
+    "name": "aa.json",
+    "path": "json/aa.json",
+    "sha": "f217c231a3f24f79ab74fcfd4c1d177ead6ad58d",
+    "size": 4023960,
+    "url": "https://api.github.com/repos/thiagobodruk/biblia/contents/json/aa.json?ref=master",
+    "html_url": "https://github.com/thiagobodruk/biblia/blob/master/json/aa.json",
+    "git_url": "https://api.github.com/repos/thiagobodruk/biblia/git/blobs/f217c231a3f24f79ab74fcfd4c1d177ead6ad58d",
+    "download_url": "https://raw.githubusercontent.com/thiagobodruk/biblia/master/json/aa.json",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/thiagobodruk/biblia/contents/json/aa.json?ref=master",
+      "git": "https://api.github.com/repos/thiagobodruk/biblia/git/blobs/f217c231a3f24f79ab74fcfd4c1d177ead6ad58d",
+      "html": "https://github.com/thiagobodruk/biblia/blob/master/json/aa.json"
+    }
+  },
+  {
+    "name": "acf.json",
+    "path": "json/acf.json",
+    "sha": "ca42ac93135f5d882c1104da446b60f4e88360cc",
+    "size": 4024660,
+    "url": "https://api.github.com/repos/thiagobodruk/biblia/contents/json/acf.json?ref=master",
+    "html_url": "https://github.com/thiagobodruk/biblia/blob/master/json/acf.json",
+    "git_url": "https://api.github.com/repos/thiagobodruk/biblia/git/blobs/ca42ac93135f5d882c1104da446b60f4e88360cc",
+    "download_url": "https://raw.githubusercontent.com/thiagobodruk/biblia/master/json/acf.json",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/thiagobodruk/biblia/contents/json/acf.json?ref=master",
+      "git": "https://api.github.com/repos/thiagobodruk/biblia/git/blobs/ca42ac93135f5d882c1104da446b60f4e88360cc",
+      "html": "https://github.com/thiagobodruk/biblia/blob/master/json/acf.json"
+    }
+  },
+  {
+    "name": "nvi.json",
+    "path": "json/nvi.json",
+    "sha": "cccabdfa2a9833e5fa02bc60282cc5f84a568e7a",
+    "size": 4030126,
+    "url": "https://api.github.com/repos/thiagobodruk/biblia/contents/json/nvi.json?ref=master",
+    "html_url": "https://github.com/thiagobodruk/biblia/blob/master/json/nvi.json",
+    "git_url": "https://api.github.com/repos/thiagobodruk/biblia/git/blobs/cccabdfa2a9833e5fa02bc60282cc5f84a568e7a",
+    "download_url": "https://raw.githubusercontent.com/thiagobodruk/biblia/master/json/nvi.json",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/thiagobodruk/biblia/contents/json/nvi.json?ref=master",
+      "git": "https://api.github.com/repos/thiagobodruk/biblia/git/blobs/cccabdfa2a9833e5fa02bc60282cc5f84a568e7a",
+      "html": "https://github.com/thiagobodruk/biblia/blob/master/json/nvi.json"
+    }
+  }
+]

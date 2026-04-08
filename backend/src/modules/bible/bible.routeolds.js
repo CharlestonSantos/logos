@@ -1,18 +1,18 @@
 // backend/src/modules/bible/bible.routes.js
-import { authenticate }       from '../../shared/middleware/authenticate.js'
-import { BibleService }       from './bible.service.js'
-import { BibleStrongService } from './bible-strong.service.js'
+import { authenticate }  from '../../shared/middleware/authenticate.js'
+import { BibleService }  from './bible.service.js'
 
 export default async function bibleRoutes(fastify) {
-  const svc       = new BibleService(fastify.db)
-  const strongSvc = new BibleStrongService()
+  const svc = new BibleService(fastify.db)
 
   // ── GET /bible/versions ─────────────────────────────────────
+  // Lista todas as versões disponíveis
   fastify.get('/versions', async () => {
     return svc.getVersions()
   })
 
   // ── GET /bible/books ────────────────────────────────────────
+  // Lista todos os livros (opcionalmente filtrado por testamento)
   fastify.get('/books', {
     schema: {
       querystring: {
@@ -27,11 +27,13 @@ export default async function bibleRoutes(fastify) {
   })
 
   // ── GET /bible/books/:bookCode ──────────────────────────────
+  // Detalhes de um livro específico
   fastify.get('/books/:bookCode', async (request) => {
     return svc.getBook(request.params.bookCode.toUpperCase())
   })
 
   // ── GET /bible/:versionCode/:bookCode/:chapter ──────────────
+  // Lê um capítulo completo
   fastify.get('/:versionCode/:bookCode/:chapter', {
     schema: {
       params: {
@@ -54,6 +56,7 @@ export default async function bibleRoutes(fastify) {
   })
 
   // ── GET /bible/:versionCode/:bookCode/:chapter/:verse ───────
+  // Lê um versículo específico
   fastify.get('/:versionCode/:bookCode/:chapter/:verse', async (request) => {
     const { versionCode, bookCode, chapter, verse } = request.params
     return svc.getVerse(
@@ -64,7 +67,8 @@ export default async function bibleRoutes(fastify) {
     )
   })
 
-  // ── GET /bible/search ───────────────────────────────────────
+  // ── GET /bible/search?q=&version= ───────────────────────────
+  // Busca textual nos versículos (full-text search PostgreSQL)
   fastify.get('/search', {
     schema: {
       querystring: {
@@ -84,13 +88,15 @@ export default async function bibleRoutes(fastify) {
   })
 
   // ── GET /bible/:verseId/references ─────────────────────────
+  // Referências cruzadas de um versículo — rota autenticada
   fastify.get('/:verseId/references', {
     preHandler: authenticate,
   }, async (request) => {
     return svc.getCrossReferences(request.params.verseId)
   })
 
-  // ── GET /bible/:verseId/references/topic ───────────────────
+  // ── GET /bible/:verseId/references/topic?tag= ──────────────
+  // Referências cruzadas filtradas por tema/tag
   fastify.get('/:verseId/references/topic', {
     preHandler: authenticate,
     schema: {
@@ -106,26 +112,5 @@ export default async function bibleRoutes(fastify) {
       request.params.verseId,
       request.query.tag
     )
-  })
-
-  // ── POST /bible/strong ──────────────────────────────────────
-  // Busca definição Strong para uma palavra
-  fastify.post('/strong', {
-    preHandler: authenticate,
-    schema: {
-      body: {
-        type: 'object',
-        required: ['word'],
-        properties: {
-          word:      { type: 'string' },
-          testament: { type: 'string' },
-        },
-      },
-    },
-  }, async (request, reply) => {
-    const { word, testament } = request.body
-    const result = await strongSvc.lookup({ word, testament: testament || 'OT' })
-    if (!result) return reply.code(404).send({ error: 'Não encontrado' })
-    return result
   })
 }
