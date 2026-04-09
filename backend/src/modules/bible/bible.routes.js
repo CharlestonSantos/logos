@@ -5,7 +5,7 @@ import { BibleStrongService } from './bible-strong.service.js'
 
 export default async function bibleRoutes(fastify) {
   const svc       = new BibleService(fastify.db)
-  const strongSvc = new BibleStrongService()
+  const strongSvc = new BibleStrongService(fastify.db)
 
   // ── GET /bible/versions ─────────────────────────────────────
   fastify.get('/versions', async () => {
