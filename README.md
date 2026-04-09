@@ -1,6 +1,6 @@
 # ✦ Logos — Portal de Estudos Bíblicos
 
-> Plataforma modular para estudo sistemático das escrituras com referências cruzadas, notas e exportação em PDF.
+> Plataforma modular para estudo sistemático das escrituras com referências cruzadas, strong, marcações em textos, notas e exportação em PDF.
 
 ## Stack
 
@@ -22,7 +22,9 @@ logos/
 │       ├── modules/   # Funcionalidades isoladas
 │       ├── shared/    # Componentes e utils globais
 │       ├── router/    # Vue Router
+|       ├── assests/   # Main CSS
 │       └── layouts/   # Layouts base
+
 │
 ├── backend/           # API Fastify
 │   └── src/
