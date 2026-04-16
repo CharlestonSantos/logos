@@ -35,21 +35,24 @@ export class BibleStrongService {
     try {
       const rows = await this.db`
         SELECT
-          strongs_code    AS strongs,
-          language        AS lang,
+          strongs_code                                       AS strongs,
+          language                                           AS lang,
           original,
-          transliteration AS translit,
-          definition,
+          transliteration                                    AS translit,
+          COALESCE(NULLIF(definition_pt,''), definition)     AS definition,
           usage
         FROM strongs_dictionary
         WHERE language = ${langCode}
           AND (
-            definition      ILIKE ${'%' + word + '%'}
+            definition_pt      ILIKE ${'%' + word + '%'}
+            OR definition      ILIKE ${'%' + word + '%'}
             OR transliteration ILIKE ${'%' + word + '%'}
           )
         ORDER BY
-          CASE WHEN definition ILIKE ${word + '%'} THEN 0 ELSE 1 END,
-          length(definition)
+          CASE WHEN definition_pt ILIKE ${word + '%'} THEN 0
+               WHEN definition    ILIKE ${word + '%'} THEN 1
+               ELSE 2 END,
+          length(COALESCE(NULLIF(definition_pt,''), definition))
         LIMIT 1
       `
       return rows.length > 0 ? rows[0] : null
