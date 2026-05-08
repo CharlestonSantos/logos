@@ -58,7 +58,7 @@
         <button v-for="color in highlightColors" :key="color.key" class="color-btn" :style="{ background: color.bg }"
           :title="color.label" @click="applyHighlight(selectedVerseId, color.key); selectedVerseId = null"></button>
         <button class="toolbar-note-btn" @click="openNoteForVerse" title="Adicionar nota">✏️</button>
-        <button class="toolbar-ref-btn" @click="loadReferences" title="Ver referências">🔗</button>
+        <button class="toolbar-ref-btn" @click="loadReferences()" title="Ver referências">🔗</button>
         <button class="toolbar-close" @click="selectedVerseId = null">✕</button>
       </div>
 
@@ -347,10 +347,13 @@
   function selectVerse(verse) {
     if (selectedVerseId.value === verse.id) {
       selectedVerseId.value = null
+      refsPanel.value = false
       return
     }
     selectedVerseId.value = verse.id
     selectedVerseText.value = `${chapter.value.book.abbr} ${chapter.value.chapter}:${verse.verse}`
+    // Abre painel de referências automaticamente
+    loadReferences(verse.id)
   }
 
   function openNoteForVerse() {
@@ -382,14 +385,14 @@
     editingNote.value = true
   }
 
-  async function loadReferences() {
-    if (!selectedVerseId.value) return
-    refsPanel.value = true
-    loadingRefs.value = true
-    notesPanel.value = false
-    references.value = []
-    const id = selectedVerseId.value
-    selectedVerseId.value = null
+  async function loadReferences(forceId = null) {
+    const id = forceId || selectedVerseId.value
+    if (!id) return
+    refsPanel.value    = true
+    loadingRefs.value  = true
+    notesPanel.value   = false
+    strongPanel.value  = false
+    references.value   = []
     try {
       const { data } = await api.get(`/bible/${id}/references`)
       references.value = data.references
@@ -399,18 +402,17 @@
 
   // ── Strong's Concordance ────────────────────────────────────
   async function lookupStrong(word, verse) {
-    if (!word || word.length < 3) return   // ✅ filtro aumentado para < 3 (evita artigos/preposições)
-
-    strongWord.value    = word
-    strongData.value    = null
-    strongPanel.value   = true
+    if (!word || word.length < 2) return
+    strongWord.value   = word
+    strongData.value   = null
+    strongPanel.value  = true
     loadingStrong.value = true
-    notesPanel.value    = false
-    refsPanel.value     = false
+    notesPanel.value   = false
+    refsPanel.value    = false
 
     try {
-      const bookTestament = chapter.value?.book?.testament || 'OT'  // ✅ renomeado — evita shadowing do ref 'testament'
-      const { data } = await api.post('/bible/strong', { word, testament: bookTestament })
+      const testament = chapter.value?.book?.testament || 'OT'
+      const { data } = await api.post('/bible/strong', { word, testament })
       strongData.value = data
     } catch {
       strongData.value = null

@@ -1,6 +1,5 @@
 // backend/src/modules/bible/bible.service.js
 import { NotFoundError } from '../../shared/errors/AppError.js'
-
 export class BibleService {
   constructor(db) {
     this.db = db
@@ -33,7 +32,6 @@ export class BibleService {
 
     const ot = books.filter(b => b.testament === 'OT')
     const nt = books.filter(b => b.testament === 'NT')
-
     return { books, ot, nt, total: books.length }
   }
 
@@ -51,7 +49,6 @@ export class BibleService {
 
   // ── Capítulo completo ───────────────────────────────────────
   async getChapter(versionCode, bookCode, chapter) {
-    // Busca versão e livro em paralelo
     const [[version], [book]] = await Promise.all([
       this.db`SELECT id, code, name FROM bible_versions WHERE code = ${versionCode} LIMIT 1`,
       this.db`SELECT id, code, name, abbr, chapter_count FROM bible_books WHERE code = ${bookCode} LIMIT 1`,
@@ -64,10 +61,7 @@ export class BibleService {
     }
 
     const verses = await this.db`
-      SELECT
-        v.id,
-        v.verse,
-        v.text
+      SELECT v.id, v.verse, v.text
       FROM bible_verses v
       WHERE v.version_id = ${version.id}
         AND v.book_id    = ${book.id}
@@ -77,22 +71,16 @@ export class BibleService {
 
     if (!verses.length) throw new NotFoundError('Capítulo não encontrado ou sem versículos cadastrados.')
 
-    // Navegação: capítulo anterior / próximo
-    const prev = chapter > 1
-      ? { book: bookCode, chapter: chapter - 1 }
-      : null
-
-    const next = chapter < book.chapterCount
-      ? { book: bookCode, chapter: chapter + 1 }
-      : null
+    const prev = chapter > 1              ? { book: bookCode, chapter: chapter - 1 } : null
+    const next = chapter < book.chapterCount ? { book: bookCode, chapter: chapter + 1 } : null
 
     return {
-      version: { code: version.code, name: version.name },
-      book:    { code: book.code, name: book.name, abbr: book.abbr, chapterCount: book.chapterCount },
+      version:    { code: version.code, name: version.name },
+      book:       { code: book.code, name: book.name, abbr: book.abbr, chapterCount: book.chapterCount },
       chapter,
       verses,
       navigation: { prev, next },
-      meta: { totalVerses: verses.length },
+      meta:       { totalVerses: verses.length },
     }
   }
 
@@ -106,8 +94,8 @@ export class BibleService {
       FROM bible_verses v
       JOIN bible_books    bk ON bk.id = v.book_id
       JOIN bible_versions bv ON bv.id = v.version_id
-      WHERE bv.code = ${versionCode}
-        AND bk.code = ${bookCode}
+      WHERE bv.code   = ${versionCode}
+        AND bk.code   = ${bookCode}
         AND v.chapter = ${chapter}
         AND v.verse   = ${verse}
       LIMIT 1
@@ -116,31 +104,16 @@ export class BibleService {
     return { verse: row }
   }
 
-  // ── Busca textual full-text (PostgreSQL tsvector) ───────────
+  // ── Busca textual ───────────────────────────────────────────
   async search(query, versionCode, limit = 20, offset = 0) {
-    // Normaliza a query para tsquery
-    const tsQuery = query
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map(w => `${w}:*`)   // prefixo para busca parcial
-      .join(' & ')
-
-    // Versão padrão se não especificada
-    const versionFilter = versionCode
-      ? this.db`AND bv.code = ${versionCode}`
-      : this.db``
+    const tsQuery = query.trim().split(/\s+/).filter(Boolean).map(w => `${w}:*`).join(' & ')
+    const versionFilter = versionCode ? this.db`AND bv.code = ${versionCode}` : this.db``
 
     const rows = await this.db`
       SELECT
-        v.id,
-        v.chapter,
-        v.verse,
-        v.text,
-        bk.code  AS book_code,
-        bk.name  AS book_name,
-        bk.abbr,
-        bv.code  AS version_code,
+        v.id, v.chapter, v.verse, v.text,
+        bk.code AS book_code, bk.name AS book_name, bk.abbr,
+        bv.code AS version_code,
         ts_rank(v.text_search, to_tsquery('portuguese', ${tsQuery})) AS rank
       FROM bible_verses v
       JOIN bible_books    bk ON bk.id = v.book_id
@@ -148,8 +121,7 @@ export class BibleService {
       WHERE v.text_search @@ to_tsquery('portuguese', ${tsQuery})
       ${versionFilter}
       ORDER BY rank DESC, bk.position, v.chapter, v.verse
-      LIMIT ${limit}
-      OFFSET ${offset}
+      LIMIT ${limit} OFFSET ${offset}
     `
 
     const [{ count }] = await this.db`
@@ -160,26 +132,15 @@ export class BibleService {
       ${versionFilter}
     `
 
-    return {
-      query,
-      results: rows,
-      pagination: {
-        total: count,
-        limit,
-        offset,
-        hasMore: offset + limit < count,
-      },
-    }
+    return { query, results: rows, pagination: { total: count, limit, offset, hasMore: offset + limit < count } }
   }
 
-  // ── Referências cruzadas de um versículo ───────────────────
+  // ── Referências cruzadas ────────────────────────────────────
   async getCrossReferences(verseId) {
+    // Busca do banco
     const refs = await this.db`
       SELECT
-        cr.id,
-        cr.relevance,
-        cr.topic_tags,
-        -- Versículo alvo
+        cr.id, cr.relevance, cr.topic_tags,
         tv.id      AS target_id,
         tv.chapter AS target_chapter,
         tv.verse   AS target_verse,
@@ -188,13 +149,12 @@ export class BibleService {
         bk.name    AS target_book_name,
         bk.abbr    AS target_book_abbr
       FROM cross_references cr
-      JOIN bible_verses tv  ON tv.id = cr.target_verse_id
-      JOIN bible_books  bk  ON bk.id = tv.book_id
+      JOIN bible_verses tv ON tv.id = cr.target_verse_id
+      JOIN bible_books  bk ON bk.id = tv.book_id
       WHERE cr.source_verse_id = ${verseId}
       ORDER BY cr.relevance DESC, bk.position, tv.chapter, tv.verse
     `
 
-    // Agrupa por tópico para facilitar o frontend
     const byTopic = {}
     for (const ref of refs) {
       const tags = ref.topicTags || ['geral']
@@ -204,25 +164,16 @@ export class BibleService {
       }
     }
 
-    return {
-      verseId,
-      total: refs.length,
-      references: refs,
-      byTopic,
-    }
+    return { verseId, total: refs.length, references: refs, byTopic }
   }
 
-  // ── Referências cruzadas por tema/tag ──────────────────────
+  // ── Referências cruzadas por tema ───────────────────────────
   async getCrossReferencesByTopic(verseId, tag) {
-    const tagFilter = tag
-      ? this.db`AND ${tag} = ANY(cr.topic_tags)`
-      : this.db``
+    const tagFilter = tag ? this.db`AND ${tag} = ANY(cr.topic_tags)` : this.db``
 
     const refs = await this.db`
       SELECT
-        cr.id,
-        cr.relevance,
-        cr.topic_tags,
+        cr.id, cr.relevance, cr.topic_tags,
         tv.id      AS target_id,
         tv.chapter AS target_chapter,
         tv.verse   AS target_verse,
@@ -231,18 +182,13 @@ export class BibleService {
         bk.name    AS target_book_name,
         bk.abbr    AS target_book_abbr
       FROM cross_references cr
-      JOIN bible_verses tv  ON tv.id = cr.target_verse_id
-      JOIN bible_books  bk  ON bk.id = tv.book_id
+      JOIN bible_verses tv ON tv.id = cr.target_verse_id
+      JOIN bible_books  bk ON bk.id = tv.book_id
       WHERE cr.source_verse_id = ${verseId}
       ${tagFilter}
       ORDER BY cr.relevance DESC
     `
 
-    return {
-      verseId,
-      tag: tag || null,
-      total: refs.length,
-      references: refs,
-    }
+    return { verseId, tag: tag || null, total: refs.length, references: refs }
   }
 }
